@@ -5324,6 +5324,7 @@ case "$enableval" in
         hexagon)  TARGETS_TO_BUILD="Hexagon $TARGETS_TO_BUILD" ;;
         mblaze)   TARGETS_TO_BUILD="MBlaze $TARGETS_TO_BUILD" ;;
         ptx)      TARGETS_TO_BUILD="PTX $TARGETS_TO_BUILD" ;;
+        dcpu16)   TARGETS_TO_BUILD="Dcpu16 $TARGETS_TO_BUILD" ;;
         host) case "$llvm_cv_target_arch" in
             x86)         TARGETS_TO_BUILD="X86 $TARGETS_TO_BUILD" ;;
             x86_64)      TARGETS_TO_BUILD="X86 $TARGETS_TO_BUILD" ;;
@@ -5337,6 +5338,7 @@ case "$enableval" in
             MSP430)      TARGETS_TO_BUILD="MSP430 $TARGETS_TO_BUILD" ;;
             Hexagon)     TARGETS_TO_BUILD="Hexagon $TARGETS_TO_BUILD" ;;
             PTX)         TARGETS_TO_BUILD="PTX $TARGETS_TO_BUILD" ;;
+            DCPU16)      TARGETS_TO_BUILD="Dcpu16 $TARGETS_TO_BUILD" ;;
             *)       { { echo "$as_me:$LINENO: error: Can not set target to build" >&5
 echo "$as_me: error: Can not set target to build" >&2;}
    { (exit 1); exit 1; }; } ;;
