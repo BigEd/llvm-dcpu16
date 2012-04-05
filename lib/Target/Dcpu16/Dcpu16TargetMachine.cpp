@@ -33,9 +33,9 @@ Dcpu16TargetMachine(const Target &T, StringRef TT,
                     Reloc::Model RM, CodeModel::Model CM,
                     CodeGenOpt::Level OL)
   : LLVMTargetMachine(T, TT, CPU, FS, Options, RM, CM, OL),
-    DataLayout("E-p:16:16:16-i16:16:16-s0:8:8"),
+    DataLayout("E-p:16:16:16-i16:16:16-s0:16:16"),
     TLInfo(*this), TSInfo(*this), InstrInfo(*this),
-    FrameLowering(Subtarget) {
+    FrameLowering() {
 }
 
 namespace {
