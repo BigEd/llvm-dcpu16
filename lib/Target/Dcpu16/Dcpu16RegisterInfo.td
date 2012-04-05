@@ -11,7 +11,7 @@
 //  Declarations that describe the Dcpu16 register file 
 //===----------------------------------------------------------------------===//
 
-let Namespace = "Dcpu16" in {
+let Namespace = "DCPU" in {
 	def A : Register<"a">;
 	def B : Register<"b">;
 	def C : Register<"c">;
@@ -27,10 +27,10 @@ let Namespace = "Dcpu16" in {
 }
 
 // Integer register
-def IntRegs : RegisterClass<"Dcpu16", [i16],  16,
+def IntRegs : RegisterClass<"DCPU", [i16],  16,
                         (add A, B, C, X, Y, Z, I, J, PC)>;
 
 // Overflow and stackpointer register
-def OReg : RegisterClass<"Dcpu16", [i16], 16, (add O, SP)> {
+def OReg : RegisterClass<"DCPU", [i16], 16, (add O, SP)> {
   let isAllocatable = 0;
 }
