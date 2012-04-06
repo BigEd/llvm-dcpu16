@@ -12,7 +12,6 @@
 //===----------------------------------------------------------------------===//
 
 #include "Dcpu16TargetMachine.h"
-#include "Dcpu16.h"
 #include "llvm/PassManager.h"
 #include "llvm/CodeGen/Passes.h"
 #include "llvm/Support/TargetRegistry.h"

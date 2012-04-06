@@ -26,9 +26,9 @@ def Z : Dcpu16Reg<0x05, "z">;
 def I : Dcpu16Reg<0x06, "i">;
 def J : Dcpu16Reg<0x07, "j">;
 
-def SP: Register<0x1b, "pc">;
-def PC: Register<0x1c, "pc">;
-def O : Register<0x1d, "o">;
+def SP: Dcpu16Reg<0x1b, "pc">;
+def PC: Dcpu16Reg<0x1c, "pc">;
+def O : Dcpu16Reg<0x1d, "o">;
 
 // Integer register
 def IntRegs : RegisterClass<"DCPU", [i16],  16,

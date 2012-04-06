@@ -12,7 +12,7 @@ LIBRARYNAME = LLVMSparcCodeGen
 TARGET = Dcpu16
 
 # Make sure that tblgen is run, first thing.
-BUILT_SOURCES =
+BUILT_SOURCES = Dcpu16GenRegisterInfo.inc 
 #SparcGenRegisterInfo.inc SparcGenInstrInfo.inc \
 #		SparcGenAsmWriter.inc SparcGenDAGISel.inc \
 #		SparcGenSubtargetInfo.inc SparcGenCallingConv.inc

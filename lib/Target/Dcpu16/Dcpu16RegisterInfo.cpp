@@ -25,7 +25,7 @@ using namespace llvm;
 
 // TODO: What does the SP:J does there?
 Dcpu16RegisterInfo::Dcpu16RegisterInfo(const TargetInstrInfo &tii)
-  : Dcpu16GenRegisterInfo(SP::J), TII(tii) {
+  : Dcpu16GenRegisterInfo(DCPU::J), TII(tii) {
 }
 
 const uint16_t* Dcpu16RegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
