@@ -7,19 +7,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-// Basic opcodes
-classInstDCPU<dag outs, dag ins, string asmstr, list<dag> pattern> : InstB {
+
+class Instruction<dag outs, dag ins, string asmstr, list<dag> pattern> {
   field bits<16> Inst;
 
   let Namespace = "DCPU";
-
-  bits<4> o;
-  bits<6> a;
-  bits<6> b;
-  
-  let Inst{3-0} = o;
-  let Inst{9-4} = a;
-  let Inst{15-10} = b;
 
   dag OutOperandList = outs;
   dag InOperandList = ins;
@@ -27,23 +19,20 @@ classInstDCPU<dag outs, dag ins, string asmstr, list<dag> pattern> : InstB {
   let Pattern = pattern;
 }
 
-// Non-basic opcodes
-classInstDCPU<dag outs, dag ins, string asmstr, list<dag> pattern> : InstNB {
-  field bits<16> Inst;
+// Basic instructions
+class BI<bits<4> o, bits<6> a, bits<6> b, dag outs, dag ins, string asmstr, list<dag> pattern>: 
+   : Instruction<outs, ins, asmstr, pattern> {
+  let Inst{3-0} = o;
+  let Inst{10-4} = a;
+  let Inst{15-10} = b;
+}
 
-  let Namespace = "DCPU";
-  
+// Non-basic instructions
+class NBI<bits<6> o, bits<6> a, dag outs, dag ins, string asmstr, list<dag> pattern> 
+   : Instruction<outs, ins, asmstr, pattern> {
   bits<4> op = 0;
-  bits<8> o;
-  bits<6> a;
   
   let Inst{3-0} = op;
   let Inst{10-4} = o;
   let Inst{15-10} = a;
-
-  dag OutOperandList = outs;
-  dag InOperandList = ins;
-  let AsmString   = asmstr;
-  let Pattern = pattern;
 }
-
