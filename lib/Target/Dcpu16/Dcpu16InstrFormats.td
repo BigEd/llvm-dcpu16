@@ -14,18 +14,18 @@ class Format<bits<4> val> {
   bits<4> Value = val;
 }
 
-def IReg     : Format<0>; // 0x00-0x07: register (A, B, C, X, Y, Z, I or J, in that order)
-def MReg  	 : Format<1>; // 0x08-0x0f: [register]
-def MNWReg   : Format<2>; // 0x10-0x17: [next word + register]
-def POP		 : Format<3>; // 0x18: POP / [SP++]
-def PEEK	 : Format<4>; // 0x19: PEEK / [SP]
-def PUSH     : Format<5>; // 0x1a: PUSH / [--SP]
-def SP		 : Format<6>; // 0x1b: SP
-def PC		 : Format<7>; // 0x1c: PC
-def O		 : Format<8>; // 0x1d: O
-def MNW		 : Format<9>; // 0x1e: [next word]
-def INW		 : Format<10>; // 0x1f: next word (literal)
-def LIT		 : Format<11>; // 0x20-0x3f: literal value 0x00-0x1f (literal)
+def IR		: Format<0>; // 0x00-0x07: register (A, B, C, X, Y, Z, I or J, in that order)
+def MR		: Format<1>; // 0x08-0x0f: [register]
+def MNWR	: Format<2>; // 0x10-0x17: [next word + register]
+def POP		: Format<3>; // 0x18: POP / [SP++]
+def PEEK	: Format<4>; // 0x19: PEEK / [SP]
+def PUSH	: Format<5>; // 0x1a: PUSH / [--SP]
+def SP		: Format<6>; // 0x1b: SP
+def PC		: Format<7>; // 0x1c: PC
+def O		: Format<8>; // 0x1d: O
+def MNW		: Format<9>; // 0x1e: [next word]
+def INW		: Format<10>; // 0x1f: next word (literal)
+def LIT		: Format<11>; // 0x20-0x3f: literal value 0x00-0x1f (literal)
 
 class Instruction<dag outs, dag ins, string asmstr, list<dag> pattern> {
   field bits<16> Inst;
