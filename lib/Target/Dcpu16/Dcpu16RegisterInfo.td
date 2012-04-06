@@ -11,20 +11,24 @@
 //  Declarations that describe the Dcpu16 register file 
 //===----------------------------------------------------------------------===//
 
-let Namespace = "DCPU" in {
-	def A : Register<"a">;
-	def B : Register<"b">;
-	def C : Register<"c">;
-	def X : Register<"x">;
-	def Y : Register<"y">;
-	def Z : Register<"z">;
-	def I : Register<"i">;
-	def J : Register<"j">;
 
-	def O : Register<"o">;
-	def PC: Register<"pc">;
-	def SP: Register<"pc">;
+class Dcpu16Reg<bits<6> num, string n> : Register<n> {
+  field bits<6> Num;
+  let Namespace = "DCPU";
 }
+
+def A : Dcpu16Reg<0x00, "a">;
+def B : Dcpu16Reg<0x01, "b">;
+def C : Dcpu16Reg<0x02, "c">;
+def X : Dcpu16Reg<0x03, "x">;
+def Y : Dcpu16Reg<0x04, "y">;
+def Z : Dcpu16Reg<0x05, "z">;
+def I : Dcpu16Reg<0x06, "i">;
+def J : Dcpu16Reg<0x07, "j">;
+
+def SP: Register<0x1b, "pc">;
+def PC: Register<0x1c, "pc">;
+def O : Register<0x1d, "o">;
 
 // Integer register
 def IntRegs : RegisterClass<"DCPU", [i16],  16,
