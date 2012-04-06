@@ -32,9 +32,13 @@ def O : Dcpu16Reg<0x1d, "o">;
 
 // Integer register
 def IntRegs : RegisterClass<"DCPU", [i16],  16,
-                        (add A, B, C, X, Y, Z, I, J, PC)>;
+                        (add A, B, C, X, Y, Z, I, J)>;
+
+// Stackpointer register
+def SPReg : RegisterClass<"DCPU", [i16], 16, (add SP)>;
+
+// Programm counter register
+def PCReg : RegisterClass<"DCPU", [i16], 16, (add PC)>;
 
 // Overflow and stackpointer register
-def OReg : RegisterClass<"DCPU", [i16], 16, (add O, SP)> {
-  let isAllocatable = 0;
-}
+def OReg : RegisterClass<"DCPU", [i16], 16, (add O)>;
