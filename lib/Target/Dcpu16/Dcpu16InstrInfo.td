@@ -325,4 +325,22 @@ multiclass NBI_ALL<string OpcStr, bits<6> o, SDNode OpNode> {
 // Instructions
 //===----------------------------------------------------------------------===//
 
-// TODO: Add me!
+// FIXME: SET is special ... since it can't be abstrcted with 'load'
+defm SET   : BI_ALL<"set", 0x1, TODO>;
+defm ADD   : BI_ALL<"add", 0x2, add>;
+defm SUB   : BI_ALL<"sub", 0x3, sub>;
+defm MUL   : BI_ALL<"mul", 0x4, mul>;
+defm DIV   : BI_ALL<"div", 0x5, sdiv>;
+defm MOD   : BI_ALL<"mod", 0x6, srem>;
+defm SHL   : BI_ALL<"shl", 0x7, shl>;
+defm SHR   : BI_ALL<"shr", 0x8, ashr>;
+defm AND   : BI_ALL<"and", 0x9, and>;
+defm BOR   : BI_ALL<"bor", 0xa, or>;
+defm XOR   : BI_ALL<"xor", 0xb, xor>;
+defm IFE   : BI_ALL<"ife", 0xc, TODO>;
+defm IFN   : BI_ALL<"ifn", 0xd, TODO>;
+defm IFG   : BI_ALL<"ifg", 0xe, TODO>;
+defm IFB   : BI_ALL<"ifb", 0xf, TODO>;
+
+// FIXME
+defm JSR   : NBI_ALL<"jsr", 0x1, TODO>
