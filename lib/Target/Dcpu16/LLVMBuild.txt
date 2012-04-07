@@ -26,7 +26,7 @@ has_asmprinter = 1
 
 [component_1]
 type = Library
-name = SparcCodeGen
-parent = Sparc
+name = Dcpu16CodeGen
+parent = Dcpu16
 required_libraries = AsmPrinter CodeGen Core MC SelectionDAG Dcpu16Desc Dcpu16Info Support Target
 add_to_library_groups = Dcpu16

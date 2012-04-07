@@ -21,7 +21,7 @@ include "llvm/Target/Target.td"
 //===----------------------------------------------------------------------===//
 
 include "Dcpu16RegisterInfo.td"
-include "Dcpu16CallingConv.td"
+//include "Dcpu16CallingConv.td"
 include "Dcpu16InstrInfo.td"
 
 def Dcpu16InstrInfo : InstrInfo;
@@ -33,7 +33,7 @@ def Dcpu16InstrInfo : InstrInfo;
 class Proc<string Name, list<SubtargetFeature> Features>
  : Processor<Name, NoItineraries, Features>;
 
-def : Proc<"generic",         []>;
+def : Proc<"generic", []>;
 
 //===----------------------------------------------------------------------===//
 // Declare the target which we are implementing
