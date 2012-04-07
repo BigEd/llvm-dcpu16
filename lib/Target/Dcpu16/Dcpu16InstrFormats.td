@@ -14,6 +14,7 @@ class Format<bits<4> val> {
   bits<4> Value = val;
 }
 
+// TODO Question: Is the [next word] = [imm16] ? 
 def IR		: Format<0>; // 0x00-0x07: register (A, B, C, X, Y, Z, I or J, in that order)
 def MR		: Format<1>; // 0x08-0x0f: [register]
 def MNWR	: Format<2>; // 0x10-0x17: [next word + register]

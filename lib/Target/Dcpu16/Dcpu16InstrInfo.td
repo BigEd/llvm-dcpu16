@@ -21,22 +21,47 @@ include "Dcpu16InstrFormats.td"
 // Instruction Pattern Stuff
 //===----------------------------------------------------------------------===//
 
-// TODO: Add all Dcpu16 adress computations
+// Define Dcpu16 specific addressing mode.
+// TODO: not sure with the complex pattern yet, definitly needs some thaughts...
+def ADDRr		: ComplexPattern<iPTR, 1, "SelectAddrR", [], []>;
+def ADDRi		: ComplexPattern<i16, 1, "SelectAddrI", [], []>;
+def ADDRri		: ComplexPattern<i16, 2, "SelectAddrRI", [], []>;
 
-// Addressing modes.
-def ADDRrr : ComplexPattern<i32, 2, "SelectADDRrr", [], []>;
-def ADDRri : ComplexPattern<i32, 2, "SelectADDRri", [frameindex], []>;
+def ADDRpop		: ComplexPattern<i16, 0, "SelectAddrPop", [], []>;
+def ADDRpeek	: ComplexPattern<i16, 0, "SelectAddrPeek", [], []>;
+def ADDRoush	: ComplexPattern<i16, 0, "SelectAddrPush", [], []>;
 
 // Address operands
-def MEMrr : Operand<i16> {
+def MEMr : Operand<i16> {
   let PrintMethod = "printMemOperand";
-  let MIOperandInfo = (ops IntRegs, IntRegs);
-}
-def MEMri : Operand<i16> {
-  let PrintMethod = "printMemOperand";
-  let MIOperandInfo = (ops IntRegs, i16imm);
+  let MIOperandInfo = (ops IntRegs);
 }
 
+def MEMi : Operand<i16> {
+  let PrintMethod = "printMemOperand";
+  let MIOperandInfo = (ops Imm16);
+}
+
+def MEMri : Operand<i16> {
+  let PrintMethod = "printMemOperand";
+  let MIOperandInfo = (ops IntRegs, Imm16);
+}
+
+// TODO: How do we build the POP, PEEK, PUSH Address operands? (and fix them in the multiclass)
+def MEMpop : Operand<i16> {
+  let PrintMethod = "printMemOperand";
+  let MIOperandInfo = (ops SPReg);
+}
+
+def MEMpeek : Operand<i16> {
+  let PrintMethod = "printMemOperand";
+  let MIOperandInfo = (ops SPReg);
+}
+
+def MEMpush : Operand<i16> {
+  let PrintMethod = "printMemOperand";
+  let MIOperandInfo = (ops SPReg);
+}
 
 //===----------------------------------------------------------------------===//
 // Instruction Class Templates
@@ -49,604 +74,606 @@ def MEMri : Operand<i16> {
 multiclass BI_ALL<string OpcStr, bits<4> o, SDNode OpNode> {
 
 // 0x00-0x07: register (A, B, C, X, Y, Z, I or J, in that order)
-  def irir  : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def irmr  : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def rmnwr : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def irpop : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def irpeek  : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def irpush  : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def irsp  : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def irpc  : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def iro   : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def irmnw  : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def irinw  : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def irlit  : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;                 
+  def irir  : BI<o, DCPU:IR, DCPU:IR,  
+                 (outs IntRegs:$a), (ins IntRegs:$a, ins IntRegs:$b),
+                 !strconcat(OpcStr, " $a, $b"),
+                 [(set IntRegs:$a, (OpNode IntRegs:$a, IntRegs:$b))]>;
+  def irmr  : BI<o, DCPU:IR, DCPU:MR, 
+                 (outs IntRegs:$a), (ins IntRegs:$a, MEMr:$b),
+                 !strconcat(OpcStr, " $a, [$b]"),
+                 [(set IntRegs:$a, (OpNode IntRegs:$a, ADDRr:$b))]>;
+  def irmnwr : BI<o, DCPU:IR, DCPU:MNWR, 
+                 (outs IntRegs:$a), (ins IntRegs:$a, MEMri:$b),
+                 !strconcat(OpcStr, " $a, [NW+$b]"),
+                 [(set IntRegs:$a, (OpNode IntRegs:$a, ADDRri:$b))]>;
+  def irpop : BI<o, DCPU:IR, DCPU:POP,
+                 (outs IntRegs:$a), (ins IntRegs:$a, MEMpop:$b),
+                 !strconcat(OpcStr, " $a, POP"),
+                 [(set IntRegs:$a, (OpNode IntRegs:$a, ADDRpop:$b))]>;
+  def irpeek  : BI<o, DCPU:IR, DCPU:PEEK,
+                 (outs IntRegs:$a), (ins IntRegs:$a, MEMpop:$b),
+                 !strconcat(OpcStr, " $a, PEEK"),
+                 [(set IntRegs:$a, (OpNode IntRegs:$a, ADDRpeek:b))]>;
+  def irpush  : BI<o, DCPU:IR, DCPU:PUSH, 
+                 (outs IntRegs:$a), (ins IntRegs:$a, MEMpop:$b),
+                 !strconcat(OpcStr, " $a, PUSH"),
+                 [(set IntRegs:$a, (OpNode IntRegs:$a, ADDRpush:b))]>;
+  def irsp  : BI<o, DCPU:IR, DCPU:SP, 
+                 (outs IntRegs:$a), (ins IntRegs:$a, SPReg:$b),
+                 !strconcat(OpcStr, " $a, SP"),
+                 [(set IntRegs:$a, (OpNode IntRegs:$a, SPReg:$b))]>;
+  def irpc  : BI<o, DCPU:IR, DCPU:PC, 
+                 (outs IntRegs:$a), (ins IntRegs:$a, PCReg:$b),
+                 !strconcat(OpcStr, " $a, PC"),
+                 [(set IntRegs:$a, (OpNode IntRegs:$a, PCReg:$b))]>;
+  def iro   : BI<o, DCPU:IR, DCPU:O, 
+                 (outs IntRegs:$a), (ins IntRegs:$a, OReg:$b),
+                 !strconcat(OpcStr, " $a, O"),
+                 [(set IntRegs:$a, (OpNode IntRegs:$a, OReg:$b))]>;
+  def irmnw  : BI<o, DCPU:IR, DCPU:MNW, 
+                 (outs IntRegs:$a), (ins IntRegs:$a, MEMi:$b),
+                 !strconcat(OpcStr, " $a, [$b]),
+                 [(set IntRegs:$a, (OpNode IntRegs:$a, ADDRi:$b))]>;
+  def irinw  : BI<o, DCPU:IR, DCPU:INW, 
+                 (outs IntRegs:$a), (ins IntRegs:$a, Imm16:$b),
+                 !strconcat(OpcStr, " $a, $b),
+                 [(set IntRegs:$a, (OpNode IntRegs:$a, Imm16:$b))]>;
+  def irlit  : BI<o, DCPU:IR, DCPU:LIT, 
+                 (outs IntRegs:$a), (ins IntRegs:$a, Imm6:$b),
+                 !strconcat(OpcStr, " $a, $b"),
+                 [(set IntRegs:$a, (OpNode IntRegs:$a, Imm6:$b))]>;                 
 
 // 0x08-0x0f: [register]
-  def mrir  : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def mrmr  : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def mmnwr : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def mrpop : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def mrpeek  : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def mrpush  : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def mrsp  : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def mrpc  : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def mro   : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def mrmnw  : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def mrinw  : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def mrlit  : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;                 
+  def mrir  : BI<o, DCPU:MR, DCPU:IR,  
+                 (outs MEMr:$a), (ins MEMr:$a, ins IntRegs:$b),
+                 !strconcat(OpcStr, " [$a], $b"),
+                 [(set MEMr:$a, (OpNode ADDRr:$a, IntRegs:$b))]>;
+  def mrmr  : BI<o, DCPU:MR, DCPU:MR, 
+                 (outs MEMr:$a), (ins MEMr:$a, MEMr:$b),
+                 !strconcat(OpcStr, " [$a], [$b]"),
+                 [(set MEMr:$a, (OpNode ADDRr:$a, ADDRr:$b))]>;
+  def mrmnwr : BI<o, DCPU:MR, DCPU:MNWR, 
+                 (outs MEMr:$a), (ins MEMr:$a, MEMri:$b),
+                 !strconcat(OpcStr, " [$a], [NW+$b]"),
+                 [(set MEMr:$a, (OpNode ADDRr:$a, ADDRri:$b))]>;
+  def mrpop : BI<o, DCPU:MR, DCPU:POP,
+                 (outs MEMr:$a), (ins MEMr:$a, MEMpop:$b),
+                 !strconcat(OpcStr, " [$a], POP"),
+                 [(set MEMr:$a, (OpNode ADDRr:$a, ADDRpop:$b))]>;
+  def mrpeek  : BI<o, DCPU:MR, DCPU:PEEK,
+                 (outs MEMr:$a), (ins MEMr:$a, MEMpeek:$b),
+                 !strconcat(OpcStr, " [$a], PEEK"),
+                 [(set MEMr:$a, (OpNode ADDRr:$a, ADDRpeek:$b))]>;
+  def mrpush  : BI<o, DCPU:MR, DCPU:PUSH, 
+                 (outs MEMr:$a), (ins MEMr:$a, MEMpush:$b),
+                 !strconcat(OpcStr, " [$a], PUSH"),
+                 [(set MEMr:$a, (OpNode ADDRr:$a, ADDRpush:$b))]>;
+  def mrsp  : BI<o, DCPU:MR, DCPU:SP, 
+                 (outs MEMr:$a), (ins MEMr:$a, SPReg:$b),
+                 !strconcat(OpcStr, " [$a], $b"),
+                 [(set MEMr:$a, (OpNode ADDRr:$a, SPReg:$b))]>;
+  def mrpc  : BI<o, DCPU:MR, DCPU:PC, 
+                 (outs MEMr:$a), (ins MEMr:$a, PCReg:$b),
+                 !strconcat(OpcStr, " [$a], $b"),
+                 [(set MEMr:$a, (OpNode ADDRr:$a, PCReg:$b))]>;
+  def mro   : BI<o, DCPU:MR, DCPU:O, 
+                 (outs MEMr:$a), (ins MEMr:$a, OReg:$b),
+                 !strconcat(OpcStr, " [$a], $b"),
+                 [(set MEMr:$a, (OpNode ADDRr:$a, OReg:$b))]>;
+  def mrmnw  : BI<o, DCPU:MR, DCPU:MNW, 
+                 (outs MEMr:$a), (ins MEMr:$a, MEMi:$b),
+                 !strconcat(OpcStr, " [$a], [$b]),
+                 [(set MEMr:$a, (OpNode ADDRr:$a, ADDRi:$b))]>;
+  def mrinw  : BI<o, DCPU:MR, DCPU:INW, 
+                 (outs MEMr:$a), (ins MEMr:$a, Imm16:$b),
+                 !strconcat(OpcStr, " [$a], $b),
+                 [(set MEMr:$a, (OpNode ADDRr:$a, Imm16:$b))]>;
+  def mrlit  : BI<o, DCPU:MR, DCPU:LIT, 
+                 (outs MEMr:$a), (ins MEMr:$a, Imm6:$b),
+                 !strconcat(OpcStr, " [$a], $b"),
+                 [(set MEMr:$a, (OpNode ADDRr:$a, Imm6:$b))]>;                                  
 
 // 0x10-0x17: [next word + register]
-  def mnwrir  : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def mnwrmr  : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def mnwmnwr : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def mnwrpop : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def mnwrpeek  : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def mnwrpush  : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def mnwrsp  : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def mnwrpc  : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def mnwro   : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def mnwrmnw  : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def mnwrinw  : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
-  def mnwrlit  : BI<o, a, b, 
-                 (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
-                 !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;                 
+  def mnwrir  : BI<o, DCPU:MNWR, DCPU:IR,  
+                 (outs MEMri:$a), (ins MEMri:$a, ins IntRegs:$b),
+                 !strconcat(OpcStr, " [$a], $b"),
+                 [(set MEMri:$a, (OpNode ADDRri:$a, IntRegs:$b))]>;
+  def mnwrmr  : BI<o, DCPU:MNWR, DCPU:MR, 
+                 (outs MEMri:$a), (ins MEMri:$a, MEMr:$b),
+                 !strconcat(OpcStr, " [$a], [$b]"),
+                 [(set MEMri:$a, (OpNode ADDRri:$a, ADDRr:$b))]>;
+  def mnwrmnwr : BI<o, DCPU:MNWR, DCPU:MNWR, 
+                 (outs MEMri:$a), (ins MEMri:$a, MEMri:$b),
+                 !strconcat(OpcStr, " [$a], [NW+$b]"),
+                 [(set MEMri:$a, (OpNode ADDRri:$a, ADDRri:$b))]>;
+  def mnwrpop : BI<o, DCPU:MNWR, DCPU:POP,
+                 (outs MEMri:$a), (ins MEMri:$a, MEMpop:$b),
+                 !strconcat(OpcStr, " [$a], POP"),
+                 [(set MEMri:$a, (OpNode ADDRri:$a, ADDRpop:$b))]>;
+  def mnwrpeek  : BI<o, DCPU:MNWR, DCPU:PEEK,
+                 (outs MEMri:$a), (ins MEMri:$a, MEMpeek:$b),
+                 !strconcat(OpcStr, " [$a], PEEK"),
+                 [(set MEMri:$a, (OpNode ADDRri:$a, ADDRpeek:$b))]>;
+  def mnwrpush  : BI<o, DCPU:MNWR, DCPU:PUSH, 
+                 (outs MEMri:$a), (ins MEMri:$a, MEMpush:$b),
+                 !strconcat(OpcStr, " [$a], PUSH"),
+                 [(set MEMri:$a, (OpNode ADDRri:$a, ADDRpush:$b))]>;
+  def mnwrsp  : BI<o, DCPU:MNWR, DCPU:SP, 
+                 (outs MEMri:$a), (ins MEMri:$a, SPReg:$b),
+                 !strconcat(OpcStr, " [$a], $b"),
+                 [(set MEMri:$a, (OpNode ADDRri:$a, SPReg:$b))]>;
+  def mnwrpc  : BI<o, DCPU:MNWR, DCPU:PC, 
+                 (outs MEMri:$a), (ins MEMri:$a, PCReg:$b),
+                 !strconcat(OpcStr, " [$a], $b"),
+                 [(set MEMri:$a, (OpNode ADDRri:$a, PCReg:$b))]>;
+  def mnwro   : BI<o, DCPU:MNWR, DCPU:O, 
+                 (outs MEMri:$a), (ins MEMri:$a, OReg:$b),
+                 !strconcat(OpcStr, " [$a], $b"),
+                 [(set MEMri:$a, (OpNode ADDRri:$a, OReg:$b))]>;
+  def mnwrmnw  : BI<o, DCPU:MNWR, DCPU:MNW, 
+                 (outs MEMri:$a), (ins MEMri:$a, MEMi:$b),
+                 !strconcat(OpcStr, " [$a], [$b]),
+                 [(set MEMri:$a, (OpNode ADDRri:$a, ADDRi:$b))]>;
+  def mnwrinw  : BI<o, DCPU:MNWR, DCPU:INW, 
+                 (outs MEMri:$a), (ins MEMri:$a, Imm16:$b),
+                 !strconcat(OpcStr, " [$a], $b),
+                 [(set MEMri:$a, (OpNode ADDRri:$a, Imm16:$b))]>;
+  def mnwrlit  : BI<o, DCPU:MNWR, DCPU:LIT, 
+                 (outs MEMri:$a), (ins MEMri:$a, Imm6:$b),
+                 !strconcat(OpcStr, " [$a], $b"),
+                 [(set MEMri:$a, (OpNode ADDRri:$a, Imm6:$b))]>;                                  
+
+// TODO fix me! Use values from above!
 
 // 0x18: POP / [SP++]
   def popir  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def popmr  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def popmnwr : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def poppop : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def poppeek  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def poppush  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def popsp  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def poppc  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def popo   : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def popmnw  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def popinw  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def poplit  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;                 
+                 [()]>;                 
 
 // 0x19: PEEK / [SP]
   def peekir  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def peekmr  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def peekmnwr : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def peekpop : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def peekpeek  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def peekpush  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def peeksp  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def peekpc  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def peeko   : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def peekmnw  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def peekinw  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def peeklit  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;                 
+                 [()]>;                 
 
 // 0x1a: PUSH / [--SP]
   def pushir  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def pushmr  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def pushmnwr : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def pushpop : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def pushpeek  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def pushpush  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def pushsp  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def pushpc  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def pusho   : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def pushmnw  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def pushinw  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def pushlit  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;                 
+                 [()]>;                 
 
 // 0x1b: SP
   def sphir  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def spmr  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def spmnwr : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def sppop : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def sppeek  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def sppush  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def spsp  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def sppc  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def spo   : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def spmnw  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def spinw  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def split  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;                 
+                 [()]>;                 
 
 // 0x1c: PC
   def pcir  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def pcmr  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def pcmnwr : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def pcpop : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def pcpeek  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def pcpush  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def pcsp  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def pcpc  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def pco   : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def pcmnw  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def pcinw  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def pclit  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;                 
+                 [()]>;                 
 
 // 0x1d: O
   def oir  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def omr  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def omnwr : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def opop : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def opeek  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def opush  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def osp  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def opc  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def oo   : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def omnw  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def oinw  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def olit  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;                 
+                 [()]>;                 
 
 // 0x1e: [next word]
   def mnwir  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def mnwmr  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def mnwmnwr : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def mnwpop : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def mnwpeek  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def mnwpush  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def mnwsp  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def mnwpc  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def mnwo   : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def mnwmnw  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def mnwinw  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def mnwlit  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;                 
+                 [()]>;                 
 
 // 0x1f: next word (literal)
   def inwir  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def inwmr  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def inwmnwr : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def inwpop : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def inwpeek  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def inwpush  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def inwsp  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def inwpc  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def inwo   : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def inwmnw  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def inwinw  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def inwlit  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;                 
+                 [()]>;                 
 
 // 0x20-0x3f: literal value 0x00-0x1f (literal)
   def litir  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def litmr  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def litmnwr : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def litpop : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def litpeek  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def litpush  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def litsp  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def litpc  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def lito   : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def litmnw  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def litinw  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
   def litlit  : BI<o, a, b, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;                 
+                 [()]>;                 
 }
 
 /// NBI_ALL multiclass - Defines all possible combinations of operands valid for
@@ -657,73 +684,73 @@ multiclass NBI_ALL<string OpcStr, bits<6> o, SDNode OpNode> {
   def ir  : NBI<o, a, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
 
 // 0x08-0x0f: [register]
   def mr  : NBI<o, a, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
 
 // 0x10-0x17: [next word + register]
   def mnwr : NBI<o, a, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
 
 // 0x18: POP / [SP++]
   def pop : NBI<o, a, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
 
 // 0x19: PEEK / [SP]
   def peek  : NBI<o, a, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
 
 // 0x1a: PUSH / [--SP]
   def push  : NBI<o, a, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
 
 // 0x1b: SP
   def sp  : NBI<o, a, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
 
 // 0x1c: PC
   def pc  : NBI<o, a, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
 
 // 0x1d: O
   def o   : NBI<o, a, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
 
 // 0x1e: [next word]
   def mnw  : NBI<o, a, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
 
 // 0x1f: next word (literal)
   def inw  : NBI<o, a, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;
+                 [()]>;
 
 // 0x20-0x3f: literal value 0x00-0x1f (literal)
   def lit  : NBI<o, a, 
                  (outs IntRegs:$dst), (ins IntRegs:$b, IntRegs:$c),
                  !strconcat(OpcStr, " $b, $c, $dst"),
-                 [(set IntRegs:$dst, (OpNode IntRegs:$b, IntRegs:$c))]>;  
+                 [()]>;  
 }
 
 
