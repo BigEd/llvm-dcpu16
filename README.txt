@@ -1,18 +1,11 @@
-
 Low Level Virtual Machine (LLVM)
 ================================
 
-This directory and its subdirectories contain source code for the Low Level
-Virtual Machine, a toolkit for the construction of highly optimized compilers,
-optimizers, and runtime environments.
+Consider this attempt to create a new backend from scratch 
+to be dead. But don't fear, there is somebody else who branched
+an existing 16-bit backend and got much faster, much further:
 
-LLVM is open source software. You may freely distribute it under the terms of
-the license agreement found in LICENSE.txt.
+ * https://github.com/krasin/llvm-dcpu16
 
-Please see the HTML documentation provided in docs/index.html for further
-assistance with LLVM.
-
-If you're writing a package for LLVM, see docs/Packaging.html for our
-suggestions.
-
-
+I will focus on porting the newlib (c standard library) to the
+DCPU16 target, using his compiler.
